@@ -17,6 +17,18 @@ class ByteStream {
     // that's a sign that you probably want to keep exploring
     // different approaches.
 
+    std::string buffer = "";
+
+    size_t _capacity;
+
+    size_t _used;
+
+    size_t _tol_read;
+
+    size_t _tol_write;
+
+    bool _end;
+
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 
   public:
