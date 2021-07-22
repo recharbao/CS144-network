@@ -18,13 +18,12 @@ void get_URL(const string &host, const string &path) {
     
     _socket.shutdown(SHUT_WR);
 
+    while (!_socket.eof()) {
+        string rec = _socket.read();
 
-    string rec = _socket.read();
-
-    cout << rec;
-
+        cout << rec;
+    }
     
-
     
 
     // You will need to connect to the "http" service on
