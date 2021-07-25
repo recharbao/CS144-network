@@ -13,12 +13,28 @@
 //! Receives and reassembles segments into a ByteStream, and computes
 //! the acknowledgment number and window size to advertise back to the
 //! remote TCPSender.
-class TCPReceiver {
+class TCPReceiver{
     //! Our data structure for re-assembling bytes.
     StreamReassembler _reassembler;
 
     //! The maximum number of bytes we'll store.
     size_t _capacity;
+
+    bool _syn = false;
+
+    bool _fin = false;
+
+    WrappingInt32 _isn{0};
+
+    WrappingInt32 _fin_seqno{0};
+
+    uint64_t _checkpoint = 0;
+
+    uint64_t _bis = 1;
+
+    WrappingInt32 _ackno{0};
+
+    uint64_t _ackno_abs = 0;
 
   public:
     //! \brief Construct a TCP receiver
