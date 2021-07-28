@@ -8,6 +8,7 @@
         "iosfwd": "cpp",
         "istream": "cpp",
         "sstream": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "chrono": "cpp"
     }
 }

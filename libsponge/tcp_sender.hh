@@ -1,13 +1,16 @@
 #ifndef SPONGE_LIBSPONGE_TCP_SENDER_HH
 #define SPONGE_LIBSPONGE_TCP_SENDER_HH
 
+
 #include "byte_stream.hh"
 #include "tcp_config.hh"
 #include "tcp_segment.hh"
 #include "wrapping_integers.hh"
 
+
 #include <functional>
 #include <queue>
+#include "tcp_timer.hh"
 
 //! \brief The "sender" part of a TCP implementation.
 
@@ -31,6 +34,26 @@ class TCPSender {
 
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
+
+    uint64_t _checkpoint = 0;
+
+    WrappingInt32 _ackno{0};
+
+    uint64_t _ackno_abs = 0;
+
+    uint16_t  _window_size{0};
+
+    tcp_timer _timer{0};
+
+    uint64_t retransmissions_nums = 0;
+
+    std::queue<TCPSegment> _segment_outstanding{};
+
+    uint64_t _bytes_in_flight = 0;
+
+    uint64_t _fin_ackno = INT64_MAX;
+
+    bool _window_size_fix = false;
 
   public:
     //! Initialize a TCPSender

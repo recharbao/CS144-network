@@ -1,5 +1,5 @@
 #include "tcp_state.hh"
-
+#include <iostream>
 using namespace std;
 
 string TCPState::state_summary(const TCPReceiver &receiver) {
@@ -24,6 +24,7 @@ string TCPState::state_summary(const TCPSender &sender) {
     } else if (not sender.stream_in().eof()) {
         return TCPSenderStateSummary::SYN_ACKED;
     } else if (sender.next_seqno_absolute() < sender.stream_in().bytes_written() + 2) {
+        // cout << sender.next_seqno_absolute() << "====================" << sender.stream_in().bytes_written() << endl;
         return TCPSenderStateSummary::SYN_ACKED;
     } else if (sender.bytes_in_flight()) {
         return TCPSenderStateSummary::FIN_SENT;
