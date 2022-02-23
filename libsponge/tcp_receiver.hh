@@ -20,6 +20,10 @@ class TCPReceiver{
     //! The maximum number of bytes we'll store.
     size_t _capacity;
 
+    bool _end_rev = false;
+
+    uint64_t _end_seqno = 0;
+
     bool _syn = false;
 
     bool _fin = false;

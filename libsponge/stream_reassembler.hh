@@ -22,12 +22,12 @@ class StreamReassembler {
 
     size_t next_conti;
 
-    bool _eof;
+    bool _eof = false;
 
     // There may be some errors in paper, 
     size_t to_assume_data_size;
 
-    size_t cur_max;
+    size_t end_index_plus_one;
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.

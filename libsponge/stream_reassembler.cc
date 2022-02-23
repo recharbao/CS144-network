@@ -14,7 +14,7 @@
 using namespace std;
 
 StreamReassembler::StreamReassembler(const size_t capacity) : _output(capacity), _capacity(capacity)
-, to_assume_data(capacity), assume_finished(capacity) , next_conti(0), _eof(false), to_assume_data_size(capacity), cur_max(0) {
+, to_assume_data(capacity), assume_finished(capacity) , next_conti(0), _eof(false), to_assume_data_size(capacity), end_index_plus_one(0) {
     for(size_t i = 0; i < to_assume_data_size; i++) {
         assume_finished[i] = true;
     }
@@ -25,25 +25,19 @@ StreamReassembler::StreamReassembler(const size_t capacity) : _output(capacity),
 //! contiguous substrings and writes them into the output stream in order.
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
     // DUMMY_CODE(data, index, eof);
-
-    if(_eof && next_conti >= cur_max) {
+    if(_eof && next_conti >= end_index_plus_one) {
         return;
     }
 
     size_t len = data.size();
-    size_t rec_max = next_conti + to_assume_data_size;
-    if(index + data.size() > rec_max){
-        len -= (index + data.size() - rec_max);
-    }
-
     if (eof){
         _eof = eof;
+        end_index_plus_one = index + data.size();
     }
 
-    cur_max = index + len > cur_max ? index + len : cur_max;
 
     for(size_t i = index; i < index + len; i++) {
-        if (i < next_conti){
+        if (i < next_conti || !assume_finished[i % to_assume_data_size]){
             continue;
         }
         to_assume_data[i % to_assume_data_size] = data[i - index];
@@ -61,9 +55,7 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     
     _output.write(write_to_output);
 
-
-
-    if (_eof && next_conti >= cur_max){
+    if (_eof && next_conti >= end_index_plus_one){
         _output.end_input();
     }
     

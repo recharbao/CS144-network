@@ -17,26 +17,21 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
     // DUMMY_CODE(seg);
     WrappingInt32 seqno = seg.header().seqno;
 
-
-    if ((_syn && seg.header().syn) || (!_syn && !seg.header().syn)){
+    if ((_syn && seg.header().syn) || (!_syn && !seg.header().syn) || (_end_rev)){
         return;
     }
-
-    // if (_fin && seg.header().fin){
-    //     return;
-    // }
-    
     
     if(seg.header().syn) {
         _syn = true;
         _isn = seg.header().seqno;
     }
 
-    if (seg.header().fin){
-        _fin = true;
-    }
-
     uint64_t seqno_abs = unwrap(seqno, _isn, _checkpoint);
+    
+    if (seg.header().fin) {
+        _fin = true;
+        _end_seqno = seqno_abs + seg.length_in_sequence_space() - 2;
+    }
 
     if (seqno_abs == 0 && seg.payload().size() != 0){
         _bis = 0;
@@ -44,18 +39,25 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
     
     uint64_t index = seqno_abs - _bis;
 
-    string content = seg.payload().copy();
-
+    string content;
     
+    if (seqno_abs + seg.length_in_sequence_space() <= _ackno_abs || seqno_abs >= _ackno_abs + stream_out().buffer_capacity()) {
+        return;
+    }
+    
+    content = seg.payload().copy().substr(0, min(seg.payload().size(), window_size()));
+    
+
     _reassembler.push_substring(content, index, _fin);
 
     _checkpoint = stream_out().bytes_written();
 
     _ackno_abs = stream_out().bytes_written() + 1;
 
-    if(_fin && _ackno_abs >= seqno_abs) {
+    if(_fin && _ackno_abs >= _end_seqno) {
         _reassembler.stream_out().end_input();
         _ackno_abs++;
+        _end_rev = true;
     }
 
     _ackno = wrap(_ackno_abs, _isn);

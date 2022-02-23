@@ -89,6 +89,8 @@ class ByteStream {
     //! Total number of bytes written
     size_t bytes_written() const;
 
+    size_t buffer_capacity() const;
+
     //! Total number of bytes popped
     size_t bytes_read() const;
     //!@}
