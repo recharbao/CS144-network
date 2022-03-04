@@ -13,8 +13,8 @@
 
 // You will need to add private members to the class declaration in `network_interface.hh`
 
-template <typename... Targs>
-void DUMMY_CODE(Targs &&... /* unused */) {}
+// template <typename... Targs>
+// void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
@@ -32,15 +32,58 @@ NetworkInterface::NetworkInterface(const EthernetAddress &ethernet_address, cons
 void NetworkInterface::send_datagram(const InternetDatagram &dgram, const Address &next_hop) {
     // convert IP address of next hop to raw 32-bit representation (used in ARP header)
     const uint32_t next_hop_ip = next_hop.ipv4_numeric();
+    auto iterator = _ip_map_ethernet.find(next_hop_ip);
+    if (iterator == _ip_map_ethernet.end()) {
+        // ARP
+        EthernetFrame e;
+        e.header().type = EthernetHeader::TYPE_ARP;
+        EthernetAddress
 
-    DUMMY_CODE(dgram, next_hop, next_hop_ip);
+    } else {
+        // IP
+        EthernetFrame e;
+        e.header().src = _ethernet_address;
+        e.header().dst = iterator->second;
+        e.header().type = EthernetHeader::TYPE_IPv4;
+        e.payload() = dgram.serialize();
+        _frames_out.push(e);
+    }
+
+    // DUMMY_CODE(dgram, next_hop, next_hop_ip);
 }
 
 //! \param[in] frame the incoming Ethernet frame
 optional<InternetDatagram> NetworkInterface::recv_frame(const EthernetFrame &frame) {
-    DUMMY_CODE(frame);
+    // DUMMY_CODE(frame);
+
+    InternetDatagram idata;
+    if (frame.header().type == EthernetHeader::TYPE_IPv4) {
+        // ip
+        if (idata.parse(frame.payload()) == ParseResult::NoError) {
+            // 如果没有立马加入
+            EthernetAddress ed = frame.header().src;
+            idata.parse(frame.payload());
+            uint32_t src = idata.header().src;
+            _ip_map_ethernet[src] = ed;
+            return idata;
+        }
+    } else if (frame.header().type == EthernetHeader::TYPE_ARP) {
+        EthernetAddress ed = frame.header().src;
+        idata.parse(frame.payload());
+        uint32_t src = idata.header().src;
+        _ip_map_ethernet[src] = ed;
+        // reply
+        InternetDatagram idata2;
+        idata2.header().src = _ip_address.ip();
+        idata2.header().dst = src;
+
+        send_datagram(idata2,Address::from_ipv4_numeric(src));
+    }
+
     return {};
 }
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
-void NetworkInterface::tick(const size_t ms_since_last_tick) { DUMMY_CODE(ms_since_last_tick); }
+void NetworkInterface::tick(const size_t ms_since_last_tick) {
+    
+}
