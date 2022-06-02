@@ -11,6 +11,7 @@ class TCPSegment {
   private:
     TCPHeader _header{};
     Buffer _payload{};
+    bool has_window_zero() const { return win_zero; }
 
   public:
     //! \brief Parse the segment from a string
